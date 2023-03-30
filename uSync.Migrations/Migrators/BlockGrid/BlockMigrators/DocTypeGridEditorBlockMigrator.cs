@@ -11,6 +11,7 @@ using Umbraco.Extensions;
 using uSync.Migrations.Context;
 using uSync.Migrations.Migrators.Models;
 using uSync.Migrations.Models;
+using static Umbraco.Cms.Core.Constants.DataTypes;
 
 namespace uSync.Migrations.Migrators.BlockGrid.BlockMigrators;
 internal class DocTypeGridEditorBlockMigrator : ISyncBlockMigrator
@@ -26,8 +27,8 @@ internal class DocTypeGridEditorBlockMigrator : ISyncBlockMigrator
 
 	/// <summary>
 	///  the DTGE doesn't generate any new content types, 
-	///  because all the content types it uses are already
-	///  in the migration.
+	///  because all the content types it uses are already.
+	///  allowedDocTypes are converted to contentType element.
 	/// </summary>
 	public IEnumerable<NewContentTypeInfo> AdditionalContentTypes(IGridEditorConfig editorConfig)
 		=> Enumerable.Empty<NewContentTypeInfo>();
@@ -41,21 +42,27 @@ internal class DocTypeGridEditorBlockMigrator : ISyncBlockMigrator
 			var allowedDocTypeExpressions = allowedDocTypes.Values<string>().ToArray();
 			if (allowedDocTypeExpressions.Length == 0) return Enumerable.Empty<string>();
 
-			var allContentTypeAliases = context.ContentTypes.GetAllAliases();
-
-			return allContentTypeAliases
+			var contentTypeAliases = context.ContentTypes.GetAllAliases()
 					.Where(contentTypeAlias =>
 						allowedDocTypeExpressions.WhereNotNull()
-						.Any(allowedExpression => Regex.IsMatch(contentTypeAlias, allowedExpression, RegexOptions.IgnoreCase) == true));
+						.Any(allowedExpression => Regex.IsMatch(contentTypeAlias, allowedExpression, RegexOptions.IgnoreCase) == true))
+					.ToArray();
+
+			// ensure the given content type are elements and can be used in the grid
+			UpdateContentTypeToElement(contentTypeAliases, context);
+
+			return contentTypeAliases;
 		}
 		else
 		{
 			// if its blank we have to add all element types. ?
-			return _contentTypeService.GetAll().Where((x => x.IsElement == true)).Select(x => x.Alias);
+			// v7 migrated content will not have any element types.
+			var contentTypeAliases = _contentTypeService.GetAll().Where((x => x.IsElement == true))
+				.Select(x => x.Alias).ToArray();
+
+			return contentTypeAliases;
 		}
 	}
-
-
 
 	/// <summary>
 	///  returns the actual doctype this content value is using
@@ -72,7 +79,7 @@ internal class DocTypeGridEditorBlockMigrator : ISyncBlockMigrator
 	///  
 	///  we assume that the migration already contains the content types
 	///  that are using in the DTGE so we don't actually have to pass 
-	///  things back to the migration process at this point
+	///  things back to the migration process at this point.
 	/// </remarks>
 	public string GetContentTypeAlias(IGridEditorConfig editorConfig)
 		=> string.Empty;
@@ -86,6 +93,7 @@ internal class DocTypeGridEditorBlockMigrator : ISyncBlockMigrator
 
 		var contentTypeAlias = GetContentTypeAlias(control);
 		if (string.IsNullOrWhiteSpace(contentTypeAlias)) return propertyValues;
+		
 
 		var elementValue = control.Value?.Value<JObject>("value")?
 			.ToObject<IDictionary<string, object>>();
@@ -116,4 +124,22 @@ internal class DocTypeGridEditorBlockMigrator : ISyncBlockMigrator
 
 		return propertyValues;
 	}
+
+	/// <summary>
+	///    Ensure the given content type are elements and can be used in the grid.
+	/// </summary>
+	/// <param name="contentTypeAliases"></param>
+	/// <param name="context"></param>
+	private void UpdateContentTypeToElement(string[] contentTypeAliases, SyncMigrationContext context)
+	{
+		var contentTypes = _contentTypeService.GetAll()
+			.Where(c => contentTypeAliases.Contains(c.Alias) && !c.IsElement);
+
+		foreach (var contentType in contentTypes)
+		{
+			contentType.IsElement = true;
+			_contentTypeService.Save(contentType);
+		}
+	}
+
 }
