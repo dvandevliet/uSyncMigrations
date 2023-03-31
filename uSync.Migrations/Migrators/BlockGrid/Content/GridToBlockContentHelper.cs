@@ -69,9 +69,7 @@ internal class GridToBlockContentHelper
 
                 foreach (var area in row.Areas.Select((value, index) => (value, index)))
                 {
-                    var areaIsFullWidth = rowIsFullWidth && area.value.Grid.GetIntOrDefault(0) == gridColumns;
-
-                    // get the content
+	                // get the content
                     var contentAndSettings = GetGridAreaBlockContent(area.value, context).ToList();
                     if (!contentAndSettings.Any()) continue;
 
@@ -79,20 +77,15 @@ internal class GridToBlockContentHelper
                     var layouts = GetGridAreaBlockLayouts(area.value, contentAndSettings).ToList();
                     if (!layouts.Any()) continue;
 
-                    if (areaIsFullWidth)
+                    // always add content items in layout context even if area is full width
+                    var areaItem = new BlockGridLayoutAreaItem
                     {
-                        blockLayouts.AddRange(layouts);
-                    }
-                    else
-                    {
-                        var areaItem = new BlockGridLayoutAreaItem
-                        {
-                            Key =  _conventions.LayoutAreaAlias(row.Name, _conventions.AreaAlias(area.index)).ToGuid(),
-                            Items = layouts.ToArray()
-                        };
+                        Key =  _conventions.LayoutAreaAlias(row.Name, _conventions.AreaAlias(area.index)).ToGuid(),
+                        Items = layouts.ToArray()
+                    };
 
-                        rowLayoutAreas.Add(areaItem);
-                    }
+                    rowLayoutAreas.Add(areaItem);
+                    
 
                     // add the content and settings to the block. 
                     contentAndSettings.ForEach(x =>
