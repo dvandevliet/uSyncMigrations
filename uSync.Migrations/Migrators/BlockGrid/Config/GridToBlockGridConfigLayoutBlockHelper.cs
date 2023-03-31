@@ -53,35 +53,36 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 
             var areas = new List<BlockGridConfiguration.BlockGridAreaConfiguration>();
 
-            foreach (var (section, index) in template.Sections.Select((x, i) => (x, i)))
+            foreach (var (section, gridSectionIndex) in template.Sections.Select((x, i) => (x, i)))
             {
-                var allowed = new List<string>();
-                if (section.Allowed?.Any() == true)
-                {
-                    allowed.AddRange(section.Allowed);
-                }
-                else
-                {
-                    allowed.Add("*");
-                }
+	            var allowed = new List<string>();
+	            if (section.Allowed?.Any() == true)
+	            {
+		            allowed.AddRange(section.Allowed);
+	            }
+	            else
+	            {
+		            allowed.Add("*");
+	            }
 
                 if (section.Grid == gridBlockContext.GridColumns)
                 {
-                    _logger.LogDebug("Adding [{allowed}] to section", string.Join(",", allowed));
+                    _logger.LogDebug("Adding [{allowed}] to root layouts from template {template?.Name}", string.Join(",", allowed));
                     gridBlockContext.AppendToRootLayouts(allowed);
                     continue;
                 }
 
+                var areaAlias = _conventions.AreaAlias(gridSectionIndex);
                 var area = new BlockGridConfiguration.BlockGridAreaConfiguration
                 {
-                    Alias = $"area_{index}",
-                    ColumnSpan = section.Grid
+                    Alias = areaAlias,
+                    ColumnSpan = section.Grid,
+                    Key = _conventions.GridAreaConfigAlias(areaAlias).ToGuid()
                 };
 
-                var alias = _conventions.GridAreaConfigAlias(area.Alias);
-                area.Key = alias.ToGuid();
-
                 areas.Add(area);
+
+                
 
                 if (allowed.Any())
                 {
@@ -92,19 +93,6 @@ internal class GridToBlockGridConfigLayoutBlockHelper
             if (areas.Count == 0)
             {
                 _logger.LogDebug("No areas added");
-                continue;
-            }
-
-            if (gridBlockContext.GridColumns == template.Sections.Sum(x => x.Grid))
-            {
-                var allowed = new List<string>();
-                foreach (var area in areas)
-                {
-                    allowed.AddRange(gridBlockContext.GetAllowedLayouts(area));
-                }
-
-                allowed.AddRange(gridBlockContext.GetRootAllowedLayouts());
-
                 continue;
             }
 
@@ -151,22 +139,19 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 
             foreach (var (gridArea, gridAreaIndex) in layout.Areas.Select((x, i) => (x, i)))
             {
-                var allowed = new List<string>();
+	            var allowed = new List<string>();
 
-                if (gridArea.Allowed?.Any() == true)
-                {
-                    allowed.AddRange(gridArea.Allowed);
-                }
-                else
-                {
-                    allowed.Add("*");
-                }
+	            if (gridArea.Allowed?.Any() == true)
+	            {
+		            allowed.AddRange(gridArea.Allowed);
+	            }
+	            else
+	            {
+		            allowed.Add("*");
+	            }
 
-                if (gridArea.Grid == gridBlockContext.GridColumns)
-                {
-                    gridBlockContext.AppendToRootLayouts(allowed);
-                    continue;
-                }
+                // always add sections inside layouts even if they are full width
+                // so no continue exception here
 
                 var area = new BlockGridConfiguration.BlockGridAreaConfiguration
                 {
@@ -186,7 +171,13 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 
             if (rowAreas.Count == 0) continue;
 
+            
             var contentTypeAlias = _conventions.LayoutContentTypeAlias(layout.Name);
+
+            if (rowAreas.Sum(a => a.ColumnSpan ?? 0) == gridBlockContext.GridColumns)
+            {
+	            gridBlockContext.AppendToRootLayouts(new[] { contentTypeAlias });
+            }
 
             var layoutBlock = new BlockGridConfiguration.BlockGridBlockConfiguration
             {
