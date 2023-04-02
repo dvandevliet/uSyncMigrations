@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 using Umbraco.Cms.Core.Configuration.Grid;
 using Umbraco.Cms.Core.Models;
@@ -12,6 +13,7 @@ using uSync.Migrations.Migrators.BlockGrid.Extensions;
 using uSync.Migrations.Migrators.Models;
 using uSync.Migrations.Context;
 using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.Services;
 
 namespace uSync.Migrations.Migrators.BlockGrid;
 
@@ -21,6 +23,8 @@ public class GridToBlockGridMigrator : SyncPropertyMigratorBase
 {
 	private readonly IGridConfig _gridConfig;
 	private readonly SyncBlockMigratorCollection _blockMigrators;
+	private readonly IDataTypeService _dataTypeService;
+	private readonly IServiceScopeFactory _scopeFactory;
 	private readonly ILoggerFactory _loggerFactory;
 	private readonly ILogger<GridToBlockGridMigrator> _logger;
 
@@ -30,10 +34,14 @@ public class GridToBlockGridMigrator : SyncPropertyMigratorBase
         IGridConfig gridConfig,
         SyncBlockMigratorCollection blockMigrators,
         IShortStringHelper shortStringHelper,
+        IDataTypeService dataTypeService,
+        IServiceScopeFactory scopeFactory,
         ILoggerFactory loggerFactory)
     {
         _gridConfig = gridConfig;
         _blockMigrators = blockMigrators;
+        _dataTypeService = dataTypeService;
+        _scopeFactory = scopeFactory;
         _conventions = new GridConventions(shortStringHelper);
         _loggerFactory = loggerFactory;
 		_logger = loggerFactory.CreateLogger<GridToBlockGridMigrator>();	
@@ -59,7 +67,7 @@ public class GridToBlockGridMigrator : SyncPropertyMigratorBase
 		var gridToBlockContext = new GridToBlockGridConfigContext(gridConfiguration, _gridConfig);
 
 		var contentBlockHelper = new GridToBlockGridConfigBlockHelper(_blockMigrators, _loggerFactory.CreateLogger<GridToBlockGridConfigBlockHelper>());
-		var layoutBlockHelper = new GridToBlockGridConfigLayoutBlockHelper(_conventions, _loggerFactory.CreateLogger<GridToBlockGridConfigLayoutBlockHelper>());
+		var layoutBlockHelper = new GridToBlockGridConfigLayoutBlockHelper(_conventions, _dataTypeService, _scopeFactory, _loggerFactory.CreateLogger<GridToBlockGridConfigLayoutBlockHelper>());
 
 		// adds content types for the core elements (headline, rte, etc)
 		contentBlockHelper.AddConfigDataTypes(gridToBlockContext, context);

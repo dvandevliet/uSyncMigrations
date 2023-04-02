@@ -126,11 +126,37 @@ internal class GridToBlockContentHelper
             var content = GetBlockItemDataFromGridControl(control, context);
             if (content == null) continue;
 
-            BlockItemData? settings = null;
-            // TODO Settings ? 
+            var settings = GetBlockItemSettingsFromGridControl(control, context);
 
             yield return new BlockContentPair(content, settings);
         }
+    }
+
+    /// <summary>
+    ///   TODO Settings ?
+    ///   applyTo defines what this setting can be applied to. It should be either row or cell as a string.
+    ///   A JSON object can also be used if you need a more specific configuration. A JSON configuration could look like this:
+	///   "applyTo": {
+	///     "row": "Headline,Article",
+	///     "cell": "4,8,6"
+    ///   }
+    ///   This would ensure the setting can only be used on rows named Article or Headline, or on cells sized: 4, 8 or 6.
+    ///   If it should only apply to cells you can remove the row property. If it should apply to all rows you can specify
+    ///   it by having the row property with null or an empty string as value.
+    /// </summary>
+    /// <param name="control"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    private BlockItemData? GetBlockItemSettingsFromGridControl(GridValue.GridControl control, SyncMigrationContext context)
+    {
+	    //var settingsType = context.ContentTypes.GetKeyByAlias("BlockgridSetting_row");
+
+	    //var x = new BlockItemData()
+	    //{
+
+	    //};
+
+	    return null;
     }
 
     private IEnumerable<BlockGridLayoutItem> GetGridAreaBlockLayouts(GridValue.GridArea area, IEnumerable<BlockContentPair> contentAndSettings)

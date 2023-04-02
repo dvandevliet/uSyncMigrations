@@ -15,11 +15,14 @@ internal static class GridToBlockGridNameExtensions
     public static string GetBlockElementContentTypeAlias(this string name, IShortStringHelper shortStringHelper)
         => name.GetContentTypeAlias("BlockElement_", shortStringHelper);
 
-    public static string GetBlockSettingsContentTypeAlias(this string name, IShortStringHelper shortStringHelper)
-        => name.GetContentTypeAlias("BlockSettings_", shortStringHelper);
+    public static string GetBlockGridSettingContentTypeAlias(this string name, IShortStringHelper shortStringHelper)
+        => name.GetContentTypeAlias("BlockGridSetting_", shortStringHelper);
 
     public static string GetBlockGridLayoutContentTypeAlias(this string name, IShortStringHelper shortStringHelper)
         => name.GetContentTypeAlias("BlockGridLayout_", shortStringHelper);
+    
+    public static string GetBlockGridCellContentTypeAlias(this string name, IShortStringHelper shortStringHelper)
+	    => name.GetContentTypeAlias("BlockGridCell_", shortStringHelper);
 
     public static string GetBlockGridAreaConfigurationAlias(this string name, IShortStringHelper shortStringHelper)
         => name.GetContentTypeAlias("BlockGridArea_", shortStringHelper);

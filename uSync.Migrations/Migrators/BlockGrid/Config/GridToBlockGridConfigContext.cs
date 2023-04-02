@@ -10,9 +10,9 @@ namespace uSync.Migrations.Migrators.BlockGrid.Config;
 ///  lets us pass around the context of our conversion of the block grid. 
 /// </summary>
 /// <remarks>
-///  this makes it much easier to block up the code (espeically around layout/templates)
+///  this makes it much easier to block up the code (especially around layout/templates)
 ///  
-///  i think in a perfect world we will be able to refactor this context out of existantce. 
+///  i think in a perfect world we will be able to refactor this context out of existence. 
 /// </remarks>
 internal class GridToBlockGridConfigContext
 {
@@ -22,6 +22,7 @@ internal class GridToBlockGridConfigContext
 
     public List<BlockGridConfiguration.BlockGridGroupConfiguration> BlockGroups { get; } = new();
     public Dictionary<string, BlockGridConfiguration.BlockGridBlockConfiguration> LayoutBlocks { get; } = new();
+    public Dictionary<string, BlockGridConfiguration.BlockGridBlockConfiguration> CellBlocks { get; } = new();
     public List<BlockGridConfiguration.BlockGridBlockConfiguration> ContentBlocks { get; } = new();
 
     public BlockGridConfiguration.BlockGridAreaConfiguration RootArea { get; } = new();
@@ -38,7 +39,11 @@ internal class GridToBlockGridConfigContext
 		Key = $"group_{nameof(GridBlocksGroup)}".ToGuid(),
 		Name = "Grid Blocks"
 	};
-
+	public BlockGridConfiguration.BlockGridGroupConfiguration CellsGroup { get; } = new()
+	{
+		Key = $"group_{nameof(CellsGroup)}".ToGuid(),
+		Name = "Cells"
+	};
 
 	public GridToBlockGridConfigContext(GridConfiguration gridConfiguration, IGridConfig gridConfig)
     {
@@ -48,6 +53,7 @@ internal class GridToBlockGridConfigContext
 
         BlockGroups.Add(LayoutsGroup);
         BlockGroups.Add(GridBlocksGroup);
+        BlockGroups.Add(CellsGroup);
     }
 
     public IEnumerable<string> GetAllowedLayouts(BlockGridConfiguration.BlockGridAreaConfiguration area)
@@ -79,6 +85,7 @@ internal class GridToBlockGridConfigContext
 
         result.Blocks = ContentBlocks
             .Union(LayoutBlocks.Values)
+            .Union(CellBlocks.Values)
             .Where(x => x.ContentElementTypeKey != Guid.Empty)
             .ToArray();
 
