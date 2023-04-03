@@ -64,7 +64,7 @@ internal class GridToBlockContentHelper
 
                 var rowColumns = row.Areas.Sum(x => x.Grid.GetIntOrDefault(0));
                 var rowIsFullWidth = sectionIsFullWidth && rowColumns == gridColumns;
-
+                
                 var rowLayoutAreas = new List<BlockGridLayoutAreaItem>();
 
                 foreach (var area in row.Areas.Select((value, index) => (value, index)))
@@ -101,10 +101,14 @@ internal class GridToBlockContentHelper
                 // row 
                 if (!rowLayoutAreas.Any()) continue;
 
-                var rowContent = GetGridRowBlockContent(row, context);
+                var rowSetting = GetGridRowBlockSetting(row, context);
+                block.SettingsData.Add(rowSetting);
 
+                var rowContent = GetGridRowBlockContent(row, context);
                 block.ContentData.Add(rowContent);
-                blockLayouts.Add(GetGridRowBlockLayout(rowContent, rowLayoutAreas, rowColumns));
+                
+
+                blockLayouts.Add(GetGridRowBlockLayout(rowContent, rowSetting, rowLayoutAreas, rowColumns));
             }
 
             // section 
@@ -149,6 +153,7 @@ internal class GridToBlockContentHelper
     /// <returns></returns>
     private BlockItemData? GetBlockItemSettingsFromGridControl(GridValue.GridControl control, SyncMigrationContext context)
     {
+        
 	    //var settingsType = context.ContentTypes.GetKeyByAlias("BlockgridSetting_row");
 
 	    //var x = new BlockItemData()
@@ -175,20 +180,43 @@ internal class GridToBlockContentHelper
         }
     }
 
-    private BlockItemData GetGridRowBlockContent(GridValue.GridRow row, SyncMigrationContext context)
+    private BlockItemData GetGridRowBlockSetting(GridValue.GridRow row, SyncMigrationContext context)
     {
-        var rowLayoutContentTypeAlias = _conventions.LayoutContentTypeAlias(row.Name);
-        var rowContentTypeKey = context.GetContentTypeKeyOrDefault(rowLayoutContentTypeAlias, rowLayoutContentTypeAlias.ToGuid()); 
+	    var settingsKey = context.ContentTypes.GetKeyByAlias( _conventions.SettingContentTypeAlias("row"));
+	    var settingsValues = row.Config == null
+		    ? new Dictionary<string, object?>()
+		    : JObject.FromObject(row.Config).ToObject<Dictionary<string, object?>>()
+		      ?? new Dictionary<string, object?>();
 
-        return new BlockItemData
+	    settingsValues = settingsValues.Select(kv =>
+			    new KeyValuePair<string, object?>(
+				    _conventions.ShortStringHelper.CleanStringForSafeAlias(kv.Key),
+				    kv.Value)
+		    )
+		    .ToDictionary(x => x.Key, x => x.Value);
+	    
+	    return new BlockItemData
         {
-            Udi = Udi.Create(UmbConstants.UdiEntityType.Element, row.Id),
-            ContentTypeKey = rowContentTypeKey,
-            ContentTypeAlias = rowLayoutContentTypeAlias
+            Udi = Udi.Create(UmbConstants.UdiEntityType.Element, Guid.NewGuid()),
+            ContentTypeKey = settingsKey,
+            RawPropertyValues = settingsValues
         };
     }
 
-    private BlockGridLayoutItem GetGridRowBlockLayout(BlockItemData rowContent, List<BlockGridLayoutAreaItem> rowLayoutAreas, int? rowColumns)
+    private BlockItemData GetGridRowBlockContent(GridValue.GridRow row, SyncMigrationContext context)
+    {
+	    var rowLayoutContentTypeAlias = _conventions.LayoutContentTypeAlias(row.Name);
+	    var rowContentTypeKey = context.GetContentTypeKeyOrDefault(rowLayoutContentTypeAlias, rowLayoutContentTypeAlias.ToGuid()); 
+
+	    return new BlockItemData
+	    {
+		    Udi = Udi.Create(UmbConstants.UdiEntityType.Element, row.Id),
+		    ContentTypeKey = rowContentTypeKey,
+		    ContentTypeAlias = rowLayoutContentTypeAlias
+	    };
+    }
+
+    private BlockGridLayoutItem GetGridRowBlockLayout(BlockItemData rowContent, BlockItemData rowSetting, List<BlockGridLayoutAreaItem> rowLayoutAreas, int? rowColumns)
     {
         return new BlockGridLayoutItem
         {
@@ -196,6 +224,7 @@ internal class GridToBlockContentHelper
             Areas = rowLayoutAreas.ToArray(),
             ColumnSpan = rowColumns,
             RowSpan = 1,
+            SettingsUdi = rowSetting?.Udi
         };
 
     }
