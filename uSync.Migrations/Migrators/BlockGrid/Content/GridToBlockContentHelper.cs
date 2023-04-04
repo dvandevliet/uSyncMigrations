@@ -77,11 +77,48 @@ internal class GridToBlockContentHelper
                     var layouts = GetGridAreaBlockLayouts(area.value, contentAndSettings).ToList();
                     if (!layouts.Any()) continue;
 
+                    // we need wrap the layouts.ToArray in a Cell wrapper so we can have config on every block grid editor area
+                    var cellSetting = GetGridCellBlockSetting(area.value, context);
+                    block.SettingsData.Add(cellSetting);
+
+                    var cellLayoutAreaKey = _conventions
+	                    .LayoutAreaAlias("Cell" + row.Name, _conventions.AreaAlias(area.index)).ToGuid();
+                    var cellLayoutItem = new BlockGridLayoutItem
+                    {
+                        ContentUdi = Udi.Create(UmbConstants.UdiEntityType.Element, Guid.NewGuid()),
+                        SettingsUdi = cellSetting?.Udi,
+                        ColumnSpan = 12,
+                        RowSpan = 1,
+                        Areas = new BlockGridLayoutAreaItem[]
+                        {
+                            new BlockGridLayoutAreaItem()
+                            {
+                                Key = cellLayoutAreaKey,
+                                Items = layouts.ToArray()
+                            }
+                        }
+                    };
+
+                    block.ContentData.Add(new BlockItemData()
+                    {
+                        Udi = cellLayoutItem.ContentUdi,
+                        ContentTypeKey = context.ContentTypes.GetKeyByAlias(_conventions.CellContentTypeAlias("Cell"))
+                    });
+
+                    //var cellAlias = "BlockGridCell_Cell";
+                    //var cellContent = new BlockItemData
+                    //{
+                    //    ContentTypeAlias = cellAlias,
+                    //    ContentTypeKey = cellAlias.ToGuid(),
+                        
+                    //};
+                    //block.ContentData.Add(cellContent);
+
                     // always add content items in layout context even if area is full width
                     var areaItem = new BlockGridLayoutAreaItem
                     {
                         Key =  _conventions.LayoutAreaAlias(row.Name, _conventions.AreaAlias(area.index)).ToGuid(),
-                        Items = layouts.ToArray()
+                        Items = new BlockGridLayoutItem[] { cellLayoutItem }
                     };
 
                     rowLayoutAreas.Add(areaItem);
@@ -153,14 +190,6 @@ internal class GridToBlockContentHelper
     /// <returns></returns>
     private BlockItemData? GetBlockItemSettingsFromGridControl(GridValue.GridControl control, SyncMigrationContext context)
     {
-        
-	    //var settingsType = context.ContentTypes.GetKeyByAlias("BlockgridSetting_row");
-
-	    //var x = new BlockItemData()
-	    //{
-
-	    //};
-
 	    return null;
     }
 
@@ -178,6 +207,29 @@ internal class GridToBlockContentHelper
 
             yield return layout;
         }
+    }
+
+    private BlockItemData GetGridCellBlockSetting(GridValue.GridArea area, SyncMigrationContext context)
+    {
+	    var settingsKey = context.ContentTypes.GetKeyByAlias( _conventions.SettingContentTypeAlias("cell"));
+	    var settingsValues = area.Config?.ToObject<Dictionary<string, object?>>() == null
+		    ? new Dictionary<string, object?>()
+		    : JObject.FromObject(area.Config).ToObject<Dictionary<string, object?>>()
+		      ?? new Dictionary<string, object?>();
+
+	    settingsValues = settingsValues.Select(kv =>
+			    new KeyValuePair<string, object?>(
+				    _conventions.ShortStringHelper.CleanStringForSafeAlias(kv.Key),
+				    kv.Value)
+		    )
+		    .ToDictionary(x => x.Key, x => x.Value);
+	    
+	    return new BlockItemData
+	    {
+		    Udi = Udi.Create(UmbConstants.UdiEntityType.Element, Guid.NewGuid()),
+		    ContentTypeKey = settingsKey,
+		    RawPropertyValues = settingsValues
+	    };
     }
 
     private BlockItemData GetGridRowBlockSetting(GridValue.GridRow row, SyncMigrationContext context)
