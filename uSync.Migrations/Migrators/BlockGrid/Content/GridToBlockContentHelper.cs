@@ -225,23 +225,24 @@ internal class GridToBlockContentHelper
     private BlockItemData GetGridRowBlockSetting(GridValue.GridRow row, SyncMigrationContext context)
     {
 	    var settingsKey = context.ContentTypes.GetKeyByAlias( _conventions.SettingContentTypeAlias("Row"));
-	    var settingsValues = row.Config == null
+	    var settingsValues = row.Config == null || !row.Config.HasValues
 		    ? new Dictionary<string, object?>()
 		    : JObject.FromObject(row.Config).ToObject<Dictionary<string, object?>>()
 		      ?? new Dictionary<string, object?>();
 
-	    settingsValues = settingsValues.Select(kv =>
-			    new KeyValuePair<string, object?>(
-				    _conventions.ShortStringHelper.CleanStringForSafeAlias(kv.Key),
-				    kv.Value)
-		    )
-		    .ToDictionary(x => x.Key, x => x.Value);
-	    
+	    Dictionary<string, object?> settingsValuesSafe = new();
+	    foreach (var settingsValue in settingsValues)
+	    {
+		    settingsValuesSafe.Add(
+			    _conventions.ShortStringHelper.CleanStringForSafeAlias(settingsValue.Key),
+			    settingsValue.Value);
+	    }
+
 	    return new BlockItemData
         {
             Udi = Udi.Create(UmbConstants.UdiEntityType.Element, Guid.NewGuid()),
             ContentTypeKey = settingsKey,
-            RawPropertyValues = settingsValues
+            RawPropertyValues = settingsValuesSafe
         };
     }
 
