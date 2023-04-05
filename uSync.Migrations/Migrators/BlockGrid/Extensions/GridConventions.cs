@@ -32,9 +32,9 @@ internal class GridConventions
     public string LayoutContentTypeAlias(string layout)
         => layout.GetBlockGridLayoutContentTypeAlias(ShortStringHelper);
 
-    public string CellContentTypeAlias(string cell)
-	    => cell.GetBlockGridCellContentTypeAlias(ShortStringHelper);
+    public string ColumnContentTypeAlias(string columnLayoutAlias)
+	    => columnLayoutAlias.GetBlockGridCellContentTypeAlias(ShortStringHelper);
 
-    public string SettingContentTypeAlias(string setting)
-	    => setting.GetBlockGridSettingContentTypeAlias(ShortStringHelper);
+    public string SettingContentTypeAlias(string settingAlias)
+	    => settingAlias.GetBlockGridSettingContentTypeAlias(ShortStringHelper);
 }

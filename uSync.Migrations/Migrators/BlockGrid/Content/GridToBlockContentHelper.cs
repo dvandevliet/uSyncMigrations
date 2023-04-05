@@ -78,15 +78,15 @@ internal class GridToBlockContentHelper
                     if (!layouts.Any()) continue;
 
                     // we need wrap the layouts.ToArray in a Cell wrapper so we can have config on every block grid editor area
-                    var cellSetting = GetGridCellBlockSetting(area.value, context);
-                    block.SettingsData.Add(cellSetting);
+                    var columnSetting = GetGridColumnBlockSetting(area.value, context);
+                    block.SettingsData.Add(columnSetting);
 
                     var cellLayoutAreaKey = _conventions
-	                    .LayoutAreaAlias("Cell" + row.Name, _conventions.AreaAlias(area.index)).ToGuid();
+	                    .LayoutAreaAlias("Column" + row.Name, _conventions.AreaAlias(area.index)).ToGuid();
                     var cellLayoutItem = new BlockGridLayoutItem
                     {
                         ContentUdi = Udi.Create(UmbConstants.UdiEntityType.Element, Guid.NewGuid()),
-                        SettingsUdi = cellSetting?.Udi,
+                        SettingsUdi = columnSetting?.Udi,
                         ColumnSpan = 12,
                         RowSpan = 1,
                         Areas = new BlockGridLayoutAreaItem[]
@@ -102,18 +102,9 @@ internal class GridToBlockContentHelper
                     block.ContentData.Add(new BlockItemData()
                     {
                         Udi = cellLayoutItem.ContentUdi,
-                        ContentTypeKey = context.ContentTypes.GetKeyByAlias(_conventions.CellContentTypeAlias("Cell"))
+                        ContentTypeKey = context.ContentTypes.GetKeyByAlias(_conventions.ColumnContentTypeAlias("Column"))
                     });
-
-                    //var cellAlias = "BlockGridCell_Cell";
-                    //var cellContent = new BlockItemData
-                    //{
-                    //    ContentTypeAlias = cellAlias,
-                    //    ContentTypeKey = cellAlias.ToGuid(),
-                        
-                    //};
-                    //block.ContentData.Add(cellContent);
-
+                    
                     // always add content items in layout context even if area is full width
                     var areaItem = new BlockGridLayoutAreaItem
                     {
@@ -174,7 +165,6 @@ internal class GridToBlockContentHelper
     }
 
     /// <summary>
-    ///   TODO Settings ?
     ///   applyTo defines what this setting can be applied to. It should be either row or cell as a string.
     ///   A JSON object can also be used if you need a more specific configuration. A JSON configuration could look like this:
 	///   "applyTo": {
@@ -209,9 +199,9 @@ internal class GridToBlockContentHelper
         }
     }
 
-    private BlockItemData GetGridCellBlockSetting(GridValue.GridArea area, SyncMigrationContext context)
+    private BlockItemData GetGridColumnBlockSetting(GridValue.GridArea area, SyncMigrationContext context)
     {
-	    var settingsKey = context.ContentTypes.GetKeyByAlias( _conventions.SettingContentTypeAlias("cell"));
+	    var settingsKey = context.ContentTypes.GetKeyByAlias( _conventions.SettingContentTypeAlias("Column"));
 	    var settingsValues = area.Config?.ToObject<Dictionary<string, object?>>() == null
 		    ? new Dictionary<string, object?>()
 		    : JObject.FromObject(area.Config).ToObject<Dictionary<string, object?>>()
@@ -234,7 +224,7 @@ internal class GridToBlockContentHelper
 
     private BlockItemData GetGridRowBlockSetting(GridValue.GridRow row, SyncMigrationContext context)
     {
-	    var settingsKey = context.ContentTypes.GetKeyByAlias( _conventions.SettingContentTypeAlias("row"));
+	    var settingsKey = context.ContentTypes.GetKeyByAlias( _conventions.SettingContentTypeAlias("Row"));
 	    var settingsValues = row.Config == null
 		    ? new Dictionary<string, object?>()
 		    : JObject.FromObject(row.Config).ToObject<Dictionary<string, object?>>()

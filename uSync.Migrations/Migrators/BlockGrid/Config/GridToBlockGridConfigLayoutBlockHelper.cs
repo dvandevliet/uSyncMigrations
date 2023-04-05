@@ -65,8 +65,8 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 	    var gridSettings = settings
 		    .ToObject<IEnumerable<GridSettingConfiguration>>() ?? Enumerable.Empty<GridSettingConfiguration>();
 
-	    // row => layout setting
-	    var rowSettingAlias = _conventions.SettingContentTypeAlias("row");
+	    // row => layout setting on row
+	    var rowSettingAlias = _conventions.SettingContentTypeAlias("Row");
 	    var rowSettingContentType = new NewContentTypeInfo
 	    {
 		    Key = rowSettingAlias.ToGuid(),
@@ -81,14 +81,14 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 	    };
 	    context.ContentTypes.AddNewContentType(rowSettingContentType);
 
-	    // cell => block setting
-	    var cellSettingAlias = _conventions.SettingContentTypeAlias("cell");
+	    // cell => layout setting on column
+	    var columnSettingAlias = _conventions.SettingContentTypeAlias("Column");
 	    var cellSettingContentType = new NewContentTypeInfo
 	    {
-		    Key = cellSettingAlias.ToGuid(),
-		    Alias = cellSettingAlias,
-		    Name = "Cell Setting",
-		    Description = "Grid cell setting",
+		    Key = columnSettingAlias.ToGuid(),
+		    Alias = columnSettingAlias,
+		    Name = "Column Setting",
+		    Description = "Grid Column setting",
 		    Folder = "BlockGrid/Settings",
 		    Icon = "icon-settings color-purple",
 		    IsElement = true,
@@ -245,7 +245,7 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 		    GroupKey = gridBlockContext.LayoutsGroup.Key.ToString(),
 		    BackgroundColor = Grid.LayoutBlocks.Background,
 		    IconColor = Grid.LayoutBlocks.Icon,
-		    SettingsElementTypeKey = _conventions.SettingContentTypeAlias("row").ToGuid()
+		    SettingsElementTypeKey = _conventions.SettingContentTypeAlias("Row").ToGuid()
 	    };
 	    return layoutBlock;
     }
@@ -279,10 +279,10 @@ internal class GridToBlockGridConfigLayoutBlockHelper
             foreach (var (gridArea, gridAreaIndex) in layout.Areas.Select((x, i) => (x, i)))
             {
 	            var allowed = new List<string>();
-	            var cellName = "Cell";
+	            var columnName = "Column";
 	            if (gridArea.Allowed?.Any() == true)
 	            {
-		            allowed.Add(cellName);
+		            allowed.Add(columnName);
 		            allowed.AddRange(gridArea.Allowed);
 	            }
 	            else
@@ -314,10 +314,10 @@ internal class GridToBlockGridConfigLayoutBlockHelper
                 }
                     
                 // cell
-                var contentTypeCellAlias = _conventions.CellContentTypeAlias(cellName);
+                var contentTypeCellAlias = _conventions.ColumnContentTypeAlias(columnName);
                 var cellBlock = new BlockGridConfiguration.BlockGridBlockConfiguration
                 {
-	                Label = cellName,
+	                Label = columnName,
 	                Areas = new List<BlockGridConfiguration.BlockGridAreaConfiguration>()
 	                {
 		                new BlockGridConfiguration.BlockGridAreaConfiguration
@@ -325,14 +325,14 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 			                Alias = _conventions.AreaAlias(gridAreaIndex),
 			                ColumnSpan = gridArea.Grid,
 			                RowSpan = 1,
-							Key = _conventions.LayoutAreaAlias("Cell" + layout.Name, _conventions.AreaAlias(gridAreaIndex)).ToGuid(),
+							Key = _conventions.LayoutAreaAlias("Column" + layout.Name, _conventions.AreaAlias(gridAreaIndex)).ToGuid(),
 						}
 	                }.ToArray(),
 	                ContentElementTypeKey = context.GetContentTypeKeyOrDefault(contentTypeCellAlias, contentTypeCellAlias.ToGuid()),
 	                GroupKey = gridBlockContext.CellsGroup.Key.ToString(),
 	                BackgroundColor = Grid.CellBlocks.Background,
 	                IconColor = Grid.CellBlocks.Icon,
-	                SettingsElementTypeKey = _conventions.SettingContentTypeAlias("cell").ToGuid(),
+	                SettingsElementTypeKey = _conventions.SettingContentTypeAlias("Column").ToGuid(),
                 };
 
                 gridBlockContext.CellBlocks.TryAdd(contentTypeCellAlias, cellBlock);
@@ -341,9 +341,9 @@ internal class GridToBlockGridConfigLayoutBlockHelper
                 {
 	                Key = cellBlock.ContentElementTypeKey,
 	                Alias = contentTypeCellAlias,
-	                Name = cellName,
-	                Description = "Grid cellblock",
-	                Folder = "BlockGrid/Cells",
+	                Name = columnName,
+	                Description = "Grid column layout",
+	                Folder = "BlockGrid/Columns",
 	                Icon = "icon-application-window-alt color-purple",
 	                IsElement = true
                 });
@@ -416,7 +416,7 @@ internal class GridToBlockGridConfigLayoutBlockHelper
             context.ContentTypes.AddElementType(block.ContentElementTypeKey);
 
 			// assign setting
-			var contentTypeSettingAlias = _conventions.SettingContentTypeAlias("row");
+			var contentTypeSettingAlias = _conventions.SettingContentTypeAlias("Row");
 			block.SettingsElementTypeKey = contentTypeSettingAlias.ToGuid();
  
         }
