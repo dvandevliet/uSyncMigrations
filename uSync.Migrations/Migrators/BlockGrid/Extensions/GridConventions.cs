@@ -30,8 +30,8 @@ internal class GridConventions
     public string LayoutAreaAlias(string layout, string areaAlias)
         => $"layout_{layout}_{areaAlias}".GetBlockGridAreaConfigurationAlias(ShortStringHelper);
 
-    public string ColumnLayoutAreaAlias(int areaIndex)
-	    => LayoutAreaAlias("Column", AreaAlias(areaIndex));
+    public string ColumnLayoutAreaAlias()
+	    => LayoutAreaAlias("Column", AreaAlias(0));
 
     public string LayoutContentTypeAlias(string layout)
         => layout.GetBlockGridLayoutContentTypeAlias(ShortStringHelper);

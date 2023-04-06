@@ -325,7 +325,7 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 			                Alias = _conventions.AreaAlias(gridAreaIndex),
 			                ColumnSpan = gridArea.Grid,
 			                RowSpan = 1,
-							Key = _conventions.ColumnLayoutAreaAlias(gridAreaIndex).ToGuid(),
+							Key = _conventions.ColumnLayoutAreaAlias().ToGuid(),
 						}
 	                }.ToArray(),
 	                ContentElementTypeKey = context.GetContentTypeKeyOrDefault(contentTypeCellAlias, contentTypeCellAlias.ToGuid()),

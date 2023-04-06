@@ -82,8 +82,7 @@ internal class GridToBlockContentHelper
                     block.SettingsData.Add(columnSetting);
 
                     // this key must be the same as the key defined for this area in the grid editor datatype for this row type
-                    var columnLayoutAreaKey = _conventions
-	                    .ColumnLayoutAreaAlias(area.index).ToGuid();
+                    var columnLayoutAreaKey = _conventions.ColumnLayoutAreaAlias().ToGuid();
                     var cellLayoutItem = new BlockGridLayoutItem
                     {
                         ContentUdi = Udi.Create(UmbConstants.UdiEntityType.Element, Guid.NewGuid()),
