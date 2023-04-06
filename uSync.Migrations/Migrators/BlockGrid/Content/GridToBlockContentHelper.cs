@@ -54,20 +54,20 @@ internal class GridToBlockContentHelper
 
         var blockLayouts = new List<BlockGridLayoutItem>();
 
-        foreach (var (sectionColums, rows) in sections)
+        foreach (var (sectionColums, gridRows) in sections)
         {
             var sectionIsFullWidth = sectionColums == gridColumns;
-
+            var rows = gridRows.Select((value, index) => (value, index));
             foreach (var row in rows)
             {
-                var areas = row.Areas.Select((x, i) => (x, i));
+                var areas = row.value.Areas.Select((x, i) => (x, i));
 
-                var rowColumns = row.Areas.Sum(x => x.Grid.GetIntOrDefault(0));
+                var rowColumns = row.value.Areas.Sum(x => x.Grid.GetIntOrDefault(0));
                 var rowIsFullWidth = sectionIsFullWidth && rowColumns == gridColumns;
                 
                 var rowLayoutAreas = new List<BlockGridLayoutAreaItem>();
 
-                foreach (var area in row.Areas.Select((value, index) => (value, index)))
+                foreach (var area in row.value.Areas.Select((value, index) => (value, index)))
                 {
 	                // get the content
                     var contentAndSettings = GetGridAreaBlockContent(area.value, context).ToList();
@@ -81,8 +81,9 @@ internal class GridToBlockContentHelper
                     var columnSetting = GetGridColumnBlockSetting(area.value, context);
                     block.SettingsData.Add(columnSetting);
 
-                    var cellLayoutAreaKey = _conventions
-	                    .LayoutAreaAlias("Column" + row.Name, _conventions.AreaAlias(area.index)).ToGuid();
+                    // this key must be the same as the key defined for this area in the grid editor datatype for this row type
+                    var columnLayoutAreaKey = _conventions
+	                    .ColumnLayoutAreaAlias(area.index).ToGuid();
                     var cellLayoutItem = new BlockGridLayoutItem
                     {
                         ContentUdi = Udi.Create(UmbConstants.UdiEntityType.Element, Guid.NewGuid()),
@@ -93,12 +94,13 @@ internal class GridToBlockContentHelper
                         {
                             new BlockGridLayoutAreaItem()
                             {
-                                Key = cellLayoutAreaKey,
+                                Key = columnLayoutAreaKey,
                                 Items = layouts.ToArray()
                             }
                         }
                     };
 
+                    // add this column layout to contentdata
                     block.ContentData.Add(new BlockItemData()
                     {
                         Udi = cellLayoutItem.ContentUdi,
@@ -108,7 +110,7 @@ internal class GridToBlockContentHelper
                     // always add content items in layout context even if area is full width
                     var areaItem = new BlockGridLayoutAreaItem
                     {
-                        Key =  _conventions.LayoutAreaAlias(row.Name, _conventions.AreaAlias(area.index)).ToGuid(),
+                        Key =  _conventions.LayoutAreaAlias(row.value.Name, _conventions.AreaAlias(area.index)).ToGuid(),
                         Items = new BlockGridLayoutItem[] { cellLayoutItem }
                     };
 
@@ -129,10 +131,10 @@ internal class GridToBlockContentHelper
                 // row 
                 if (!rowLayoutAreas.Any()) continue;
 
-                var rowSetting = GetGridRowBlockSetting(row, context);
+                var rowSetting = GetGridRowBlockSetting(row.value, context);
                 block.SettingsData.Add(rowSetting);
 
-                var rowContent = GetGridRowBlockContent(row, context);
+                var rowContent = GetGridRowBlockContent(row.value, context);
                 block.ContentData.Add(rowContent);
                 
 
