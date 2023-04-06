@@ -11,7 +11,7 @@ public class GridRTEBlockMigrator : GridBlockMigratorSimpleBase, ISyncBlockMigra
 
 	public string[] Aliases => new[] { "rte" };
 
-	public override string GetEditorAlias(IGridEditorConfig editor) => "Richtext Editor";
+	public override string GetEditorAlias(IGridEditorConfig editor) => "Rich Text Editor";
 }
 
 
