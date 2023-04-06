@@ -136,7 +136,7 @@ public class NestedToBlockListMigrator : SyncPropertyMigratorBase
                 if (editorAlias == null) continue;
 
                 var migrator = context.Migrators.TryGetMigrator(editorAlias.OriginalEditorAlias);
-                if (migrator != null)
+                if (migrator != null && property.Value != null)
                 {
                     block.RawPropertyValues[property.Key] = migrator.GetContentValue(
                         new SyncMigrationContentProperty(
