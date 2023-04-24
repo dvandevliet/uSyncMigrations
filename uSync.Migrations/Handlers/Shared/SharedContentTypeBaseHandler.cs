@@ -268,7 +268,7 @@ internal abstract class SharedContentTypeBaseHandler<TEntity> : SharedHandlerBas
             // if this has been blocked don't add it. 
 			if (context.IsBlocked(this.ItemType, contentType.Alias)) continue;
 
-            var source = contentType.MakeXMLFromNewDocType(_dataTypeService);
+            var source = contentType.MakeXMLFromNewDocType(_dataTypeService, context);
 
 			var migratingNotification = new SyncMigratingNotification<TEntity>(source, context);
 			if (_eventAggregator.PublishCancelable(migratingNotification) == true)

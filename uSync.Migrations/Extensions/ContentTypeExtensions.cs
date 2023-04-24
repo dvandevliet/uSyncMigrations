@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using System.Xml.Linq;
 
 using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Core.Services;
@@ -6,28 +7,29 @@ using Umbraco.Cms.Core.Strings;
 using Umbraco.Extensions;
 
 using uSync.Core;
+using uSync.Migrations.Context;
 using uSync.Migrations.Models;
 
 namespace uSync.Migrations.Extensions;
 internal static class ContentTypeExtensions
 {
 	public static XElement MakeXMLFromNewDocType(this NewContentTypeInfo newDocType,
-		IDataTypeService dataTypeService)
+        IDataTypeService dataTypeService, SyncMigrationContext context)
 	{
 		var source = new XElement("ContentType",
 					 new XAttribute(uSyncConstants.Xml.Key, newDocType.Alias.ToGuid()),
 					 new XAttribute(uSyncConstants.Xml.Alias, newDocType.Alias),
 					 new XAttribute(uSyncConstants.Xml.Level, 1),
 					 new XElement(uSyncConstants.Xml.Info,
-						 new XElement(uSyncConstants.Xml.Name, newDocType.Name),
-						 new XElement("Icon", newDocType.Icon),
-						 new XElement("Thumbnail", "folder.png"),
-						 new XElement("Description", newDocType.Description),
-						 new XElement("AllowAtRoot", false),
-						 new XElement("IsListView", false),
-						 new XElement("Variations", "Nothing"),
-						 new XElement("IsElement", newDocType.IsElement),
-						 new XElement("Folder", newDocType.Folder ?? "")),
+					     new XElement(uSyncConstants.Xml.Name, newDocType.Name),
+					     new XElement("Icon", newDocType.Icon),
+					     new XElement("Thumbnail", "folder.png"),
+					     new XElement("Description", newDocType.Description),
+					     new XElement("AllowAtRoot", false),
+					     new XElement("IsListView", false),
+                         new XElement("Variations", "Nothing"),
+					     new XElement("IsElement", newDocType.IsElement || context.ContentTypes.IsElementType(newDocType.Alias.ToGuid())),
+					     new XElement("Folder", newDocType.Folder ?? "")),
 					 new XElement("GenericProperties"),
 					 new XElement("Tabs",
 						 new XElement("Tab",

@@ -131,15 +131,9 @@ internal class DocTypeGridEditorBlockMigrator : ISyncBlockMigrator
 	/// <param name="contentTypeAliases"></param>
 	/// <param name="context"></param>
 	private void UpdateContentTypeToElement(string[] contentTypeAliases, SyncMigrationContext context)
-	{
-		var contentTypes = _contentTypeService.GetAll()
-			.Where(c => contentTypeAliases.Contains(c.Alias) && !c.IsElement);
-
-		foreach (var contentType in contentTypes)
-		{
-			contentType.IsElement = true;
-			_contentTypeService.Save(contentType);
-		}
-	}
+    {
+        var contentTypeKeys = contentTypeAliases.Select(x => x.ToGuid());
+		context.ContentTypes.AddElementTypes(contentTypeKeys, true);
+    }
 
 }

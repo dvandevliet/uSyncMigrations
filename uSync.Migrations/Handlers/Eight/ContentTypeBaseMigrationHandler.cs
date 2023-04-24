@@ -31,11 +31,19 @@ internal class ContentTypeBaseMigrationHandler<TEntity> : SharedContentTypeBaseH
 
     /// <summary>
     ///  for v8 we clone these into the new file.
+    ///  During migration of e.g. GridEditor/DTGE IsElement can become true
     /// </summary>
     protected override void UpdateInfoSection(XElement? info, XElement target, Guid key, SyncMigrationContext context)
     {
         if (info == null) return;
-        target.Add(info.Clone());
+
+        var targetInfo = info.Clone();
+        if (context.ContentTypes.IsElementType(key))
+        {
+            // update to isElement
+            targetInfo.Element("IsElement").Value = true.ToString();
+        }
+        target.Add(targetInfo);
     }
 
 
