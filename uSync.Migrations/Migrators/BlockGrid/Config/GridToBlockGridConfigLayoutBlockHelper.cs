@@ -136,6 +136,7 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 
 				    dataType = new DataType(editor, serializer)
 				    {
+						Key = dataTypeName.ToGuid(),
 					    DatabaseType = ValueStorageType.Ntext,
 					    CreateDate = DateTime.Now,
 					    CreatorId = -1,

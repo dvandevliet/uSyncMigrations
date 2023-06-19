@@ -69,7 +69,7 @@ internal class GridToBlockContentHelper
 
                 foreach (var area in row.value.Areas.Select((value, index) => (value, index)))
                 {
-	                // get the content
+	                // get the content - NOTE empty areas need to be added too
                     var contentAndSettings = GetGridAreaBlockContent(area.value, context).ToList();
                     if (!contentAndSettings.Any()) continue;
 
@@ -127,8 +127,8 @@ internal class GridToBlockContentHelper
                     });
                 }
 
-                // row 
-                if (!rowLayoutAreas.Any()) continue;
+                // row - empty areas must be added too
+                //if (!rowLayoutAreas.Any()) continue;
 
                 var rowSetting = GetGridRowBlockSetting(row.value, context);
                 block.SettingsData.Add(rowSetting);
@@ -158,7 +158,6 @@ internal class GridToBlockContentHelper
         {
             var content = GetBlockItemDataFromGridControl(control, context);
             if (content == null) continue;
-
             var settings = GetBlockItemSettingsFromGridControl(control, context);
 
             yield return new BlockContentPair(content, settings);

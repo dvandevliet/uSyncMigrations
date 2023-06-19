@@ -30,9 +30,6 @@ public class GridMediaBlockMigrator : GridBlockMigratorSimpleBase, ISyncBlockMig
 		}
 
 		var udiString = control.Value.Value<string>("udi");
-		if (udiString == null) return properties;
-
-		// 
 		if (UdiParser.TryParse(udiString, out Udi? udi) && udi is GuidUdi guidUdi) {
 
 			var values = new
@@ -43,7 +40,15 @@ public class GridMediaBlockMigrator : GridBlockMigratorSimpleBase, ISyncBlockMig
 
 			properties.Add("media", JsonConvert.SerializeObject(values));
 		}
-		return properties;
+
+		// add caption
+        var caption = control.Value.Value<string>("caption");
+        if (!string.IsNullOrEmpty(caption))
+        {
+            properties.Add("caption", control.Value.Value<string>("caption"));
+        }
+
+        return properties;
 	}
 }
 
