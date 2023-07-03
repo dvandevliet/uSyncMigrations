@@ -351,7 +351,7 @@ internal class GridToBlockGridConfigLayoutBlockHelper
 
             }
 
-            if (rowAreas.Count == 0) continue;
+            // DISABLED - empty areas should be added too?: if (rowAreas.Count == 0) continue;
 
             // layout
             var contentTypeLayoutAlias = _conventions.LayoutContentTypeAlias(layout.Name);

@@ -71,11 +71,11 @@ internal class GridToBlockContentHelper
                 {
 	                // get the content - NOTE empty areas need to be added too
                     var contentAndSettings = GetGridAreaBlockContent(area.value, context).ToList();
-                    if (!contentAndSettings.Any()) continue;
+                    //ADD EMPTY AREAS SO DO NOT SKIP: if (!contentAndSettings.Any()) continue;
 
                     // get the layouts 
                     var layouts = GetGridAreaBlockLayouts(area.value, contentAndSettings).ToList();
-                    if (!layouts.Any()) continue;
+                    //ADD EMPTY AREAS SO DO NOT SKIP: if (!layouts.Any()) continue;
 
                     // we need wrap the layouts.ToArray in a Cell wrapper so we can have config on every block grid editor area
                     var columnSetting = GetGridColumnBlockSetting(area.value, context);
